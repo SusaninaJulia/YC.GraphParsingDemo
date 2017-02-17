@@ -1,0 +1,25 @@
+type project
+title
+    YC.GraphParsingDemo
+owners
+    YaccConstructor
+authors 
+    YaccConstructor
+projectUrl
+    https://github.com/Graph-Parsing-Demo-Group/YC.GraphParsingDemo
+iconUrl
+    https://raw.githubusercontent.com/Graph-Parsing-Demo-Group/YC.GraphParsingDemo/master/docs/files/img/logo.png
+licenseUrl
+    https://github.com/Graph-Parsing-Demo-Group/YC.GraphParsingDemo/blob/master/LICENSE.txt
+requireLicenseAcceptance
+    false
+copyright
+    Copyright 2015
+tags
+    Web Parser
+summary
+    Web demo for graph parser
+description
+    Web demo application for graph paser
+
+
