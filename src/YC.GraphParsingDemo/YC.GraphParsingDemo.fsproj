@@ -1,10 +1,44 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{0290e97f-7e5a-4192-bd59-765d1eaa04e1}</ProjectGuid>
+    <ProjectGuid>{07e5f1ab-ed74-4a8d-81c2-a2d03ac09e27}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>YC.GraphParsingDemo</RootNamespace>
+    <AssemblyName>YC.GraphParsingDemo</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFSharpCoreVersion>4.3.0.0</TargetFSharpCoreVersion>
+    <Name>YC.GraphParsingDemo</Name>
+    <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <Tailcalls>false</Tailcalls>
+    <OutputPath>bin</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <DocumentationFile>.\bin\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
+    <OtherFlags>--warnon:1182</OtherFlags>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <Tailcalls>true</Tailcalls>
+    <OutputPath>bin</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <DocumentationFile>.\bin\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
+    <OtherFlags>--warnon:1182</OtherFlags>
+  </PropertyGroup>
+  <PropertyGroup>
+    <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
     <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{F2A71F9B-5D33-465A-A702-920D77279786}</ProjectTypeGuids>
     <WebSharperProject>Site</WebSharperProject>
     <UseIISExpress>true</UseIISExpress>
@@ -12,58 +46,7 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
-    <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <Tailcalls>false</Tailcalls>
-    <OutputPath>bin</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <Tailcalls>true</Tailcalls>
-    <OutputPath>bin</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <Name>YC.GraphParsingDemo</Name>
-    <RootNamespace>YC.GraphParsingDemo</RootNamespace>
-    <AssemblyName>YC.GraphParsingDemo</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <WarningLevel>3</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="Remoting.fs" />
-    <Compile Include="Client.fs" />
-    <Compile Include="Main.fs" />
-    <Content Include="Main.html" />
-    <Content Include="Web.config" />
-    <Content Include="Global.asax" />
-    <Compile Include="Global.asax.fs" />
-    <Content Include="Setup.fsx" />
-  </ItemGroup>
-  <Target Name="IncludeContent" BeforeTargets="Compile">
-    <ItemGroup>
-      <Content Include="Content/**/*.*" />
-      <Content Include="Scripts/**/*.*" />
-    </ItemGroup>
-  </Target>
-  <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Web" />
-  </ItemGroup>
-  <!-- F# targets -->
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '11.0'">
       <PropertyGroup Condition="Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')">
@@ -76,7 +59,7 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  <Import Project="$(FSharpTargetsPath)" />
+  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <!-- Web targets -->
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -85,21 +68,15 @@
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
   <Import Project="..\..\packages\WebSharper.3.6.18.241\build\WebSharper.targets" Condition="Exists('..\..\packages\WebSharper.3.6.18.241\build\WebSharper.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>Данный проект ссылается на пакеты NuGet, отсутствующие на этом компьютере. Используйте восстановление пакетов NuGet, чтобы скачать их.  Дополнительную информацию см. по адресу: http://go.microsoft.com/fwlink/?LinkID=322105. Отсутствует следующий файл: {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\WebSharper.3.6.18.241\build\WebSharper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\WebSharper.3.6.18.241\build\WebSharper.targets'))" />
-  </Target>
   <ProjectExtensions>
     <VisualStudio>
       <FlavorProperties Guid="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
           <UseIIS>True</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>58013</DevelopmentServerPort>
+          <DevelopmentServerPort>50989</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:58013/</IISUrl>
+          <IISUrl>http://localhost:50989/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>
@@ -130,6 +107,20 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <Import Project="..\..\.paket\paket.targets" />
+  <!--
+  <Import Project="..\..\packages\WebSharper.3.6.14.237\build\WebSharper.targets" Condition="Exists('..\..\packages\WebSharper.3.6.14.237\build\WebSharper.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\packages\WebSharper.3.6.14.237\build\WebSharper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\WebSharper.3.6.14.237\build\WebSharper.targets'))" />
+  </Target>
+  -->
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v3.5'">
       <ItemGroup>
@@ -155,6 +146,71 @@
       <ItemGroup>
         <Reference Include="DotParser">
           <HintPath>..\..\packages\DotParser\lib\net45\DotParser.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v2.0' Or $(TargetFrameworkVersion) == 'v3.0' Or $(TargetFrameworkVersion) == 'v3.5')">
+      <ItemGroup>
+        <Reference Include="FSharp.Core">
+          <HintPath>..\..\packages\FSharp.Core\lib\net20\FSharp.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2' Or $(TargetFrameworkVersion) == 'v4.6.3')">
+      <ItemGroup>
+        <Reference Include="FSharp.Core">
+          <HintPath>..\..\packages\FSharp.Core\lib\net40\FSharp.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch') Or ($(TargetFrameworkIdentifier) == 'Xamarin.iOS')">
+      <ItemGroup>
+        <Reference Include="FSharp.Core">
+          <HintPath>..\..\packages\FSharp.Core\lib\portable-net45+monoandroid10+monotouch10+xamarinios10\FSharp.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="($(TargetFrameworkIdentifier) == '.NETCore') Or ($(TargetFrameworkIdentifier) == '.NETStandard' And ($(TargetFrameworkVersion) == 'v1.1' Or $(TargetFrameworkVersion) == 'v1.2' Or $(TargetFrameworkVersion) == 'v1.3' Or $(TargetFrameworkVersion) == 'v1.4' Or $(TargetFrameworkVersion) == 'v1.5' Or $(TargetFrameworkVersion) == 'v1.6')) Or ($(TargetFrameworkIdentifier) == '.NETCoreApp' And $(TargetFrameworkVersion) == 'v1.0') Or ($(TargetFrameworkIdentifier) == 'Xamarin.Mac') Or ($(TargetFrameworkProfile) == 'Profile7') Or ($(TargetFrameworkProfile) == 'Profile44')">
+      <ItemGroup>
+        <Reference Include="FSharp.Core">
+          <HintPath>..\..\packages\FSharp.Core\lib\portable-net45+netcore45\FSharp.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="($(TargetFrameworkIdentifier) == '.NETStandard' And $(TargetFrameworkVersion) == 'v1.0') Or ($(TargetFrameworkIdentifier) == 'WindowsPhone' And ($(TargetFrameworkVersion) == 'v8.0' Or $(TargetFrameworkVersion) == 'v8.1')) Or ($(TargetFrameworkProfile) == 'Profile31') Or ($(TargetFrameworkProfile) == 'Profile49') Or ($(TargetFrameworkProfile) == 'Profile78')">
+      <ItemGroup>
+        <Reference Include="FSharp.Core">
+          <HintPath>..\..\packages\FSharp.Core\lib\portable-net45+netcore45+wp8\FSharp.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="($(TargetFrameworkIdentifier) == 'WindowsPhoneApp') Or ($(TargetFrameworkProfile) == 'Profile32') Or ($(TargetFrameworkProfile) == 'Profile84') Or ($(TargetFrameworkProfile) == 'Profile111') Or ($(TargetFrameworkProfile) == 'Profile151') Or ($(TargetFrameworkProfile) == 'Profile157') Or ($(TargetFrameworkProfile) == 'Profile259')">
+      <ItemGroup>
+        <Reference Include="FSharp.Core">
+          <HintPath>..\..\packages\FSharp.Core\lib\portable-net45+netcore45+wpa81+wp8\FSharp.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="($(TargetFrameworkIdentifier) == 'Silverlight' And $(TargetFrameworkVersion) == 'v5.0') Or ($(TargetFrameworkProfile) == 'Profile24') Or ($(TargetFrameworkProfile) == 'Profile47')">
+      <ItemGroup>
+        <Reference Include="FSharp.Core">
+          <HintPath>..\..\packages\FSharp.Core\lib\portable-net45+sl5+netcore45\FSharp.Core.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
@@ -191,21 +247,24 @@
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
+        <Reference Include="System.Web">
+          <Paket>True</Paket>
+        </Reference>
       </ItemGroup>
     </When>
   </Choose>
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2' Or $(TargetFrameworkVersion) == 'v4.6.3')">
       <ItemGroup>
+        <Reference Include="IntelliFactory.Xml">
+          <HintPath>..\..\packages\IntelliFactory.Xml\lib\net40\IntelliFactory.Xml.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
         <Reference Include="System.Xml">
           <Paket>True</Paket>
         </Reference>
         <Reference Include="System.Xml.Linq">
-          <Paket>True</Paket>
-        </Reference>
-        <Reference Include="IntelliFactory.Xml">
-          <HintPath>..\..\packages\IntelliFactory.Xml\lib\net40\IntelliFactory.Xml.dll</HintPath>
-          <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
       </ItemGroup>
@@ -235,13 +294,13 @@
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-        <Reference Include="WebSharper.Core">
-          <HintPath>..\..\packages\WebSharper\lib\net40\WebSharper.Core.dll</HintPath>
+        <Reference Include="WebSharper.Core.JavaScript">
+          <HintPath>..\..\packages\WebSharper\lib\net40\WebSharper.Core.JavaScript.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-        <Reference Include="WebSharper.Core.JavaScript">
-          <HintPath>..\..\packages\WebSharper\lib\net40\WebSharper.Core.JavaScript.dll</HintPath>
+        <Reference Include="WebSharper.Core">
+          <HintPath>..\..\packages\WebSharper\lib\net40\WebSharper.Core.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
@@ -313,7 +372,9 @@
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2' Or $(TargetFrameworkVersion) == 'v4.6.3')">
       <ItemGroup>
-        <Reference Include="System.Runtime.Caching">
+        <Reference Include="WebSharper.UI.Next.Templating">
+          <HintPath>..\..\packages\WebSharper.UI.Next\lib\net40\WebSharper.UI.Next.Templating.dll</HintPath>
+          <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
         <Reference Include="WebSharper.UI.Next">
@@ -321,9 +382,7 @@
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-        <Reference Include="WebSharper.UI.Next.Templating">
-          <HintPath>..\..\packages\WebSharper.UI.Next\lib\net40\WebSharper.UI.Next.Templating.dll</HintPath>
-          <Private>True</Private>
+        <Reference Include="System.Runtime.Caching">
           <Paket>True</Paket>
         </Reference>
       </ItemGroup>
@@ -343,11 +402,6 @@
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2' Or $(TargetFrameworkVersion) == 'v4.6.3')">
       <ItemGroup>
-        <Reference Include="YC.QuickGraph">
-          <HintPath>..\..\packages\YC.QuickGraph\lib\net45\YC.QuickGraph.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
         <Reference Include="YC.QuickGraph.Data">
           <HintPath>..\..\packages\YC.QuickGraph\lib\net45\YC.QuickGraph.Data.dll</HintPath>
           <Private>True</Private>
@@ -375,6 +429,11 @@
         </Reference>
         <Reference Include="YC.QuickGraph.Petri">
           <HintPath>..\..\packages\YC.QuickGraph\lib\net45\YC.QuickGraph.Petri.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="YC.QuickGraph">
+          <HintPath>..\..\packages\YC.QuickGraph\lib\net45\YC.QuickGraph.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
@@ -519,4 +578,31 @@
     </When>
   </Choose>
   <Import Project="..\..\packages\WebSharper\build\WebSharper.targets" Condition="Exists('..\..\packages\WebSharper\build\WebSharper.targets')" Label="Paket" />
+  <ItemGroup>
+    <Compile Include="Parser.fs" />
+    <Compile Include="Remoting.fs" />
+    <Compile Include="Client.fs" />
+    <Compile Include="Main.fs" />
+    <Content Include="Main.html" />
+    <Content Include="Web.config" />
+    <Content Include="Global.asax" />
+    <Compile Include="Global.asax.fs" />
+    <Content Include="Setup.fsx" />
+    <Content Include="packages.config" />
+    <Content Include="paket.references" />
+    <Content Include="yeahboy.PNG" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Data.DataSetExtensions.dll" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.ApplicationServices.dll" />
+    <Reference Include="System.Web.DynamicData.dll" />
+    <Reference Include="System.Web.Entity.dll" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq.dll" />
+  </ItemGroup>
 </Project>

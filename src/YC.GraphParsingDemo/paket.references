@@ -1,5 +1,5 @@
 FSharp.Core
-WebSharper
-WebSharper.UI.Next
-WebSharper.Formlets
 YC.SDK.Runtime
+WebSharper
+WebSharper.Formlets
+WebSharper.UI.Next

@@ -87,8 +87,7 @@ Target "AssemblyInfo" (fun _ ->
           Attribute.Product project
           Attribute.Description summary
           Attribute.Version release.AssemblyVersion
-          Attribute.FileVersion release.AssemblyVersion
-          Attribute.Configuration configuration ]
+          Attribute.FileVersion release.AssemblyVersion ]
 
     let getProjectDetails projectPath =
         let projectName = System.IO.Path.GetFileNameWithoutExtension(projectPath)
@@ -115,23 +114,19 @@ Target "AssemblyInfo" (fun _ ->
 Target "CopyBinaries" (fun _ ->
     !! "src/**/*.??proj"
     -- "src/**/*.shproj"
-    |>  Seq.map (fun f -> ((System.IO.Path.GetDirectoryName f) </> "bin" </> configuration, "bin" </> (System.IO.Path.GetFileNameWithoutExtension f)))
+    |>  Seq.map (fun f -> ((System.IO.Path.GetDirectoryName f) </> "bin/Release", "bin" </> (System.IO.Path.GetFileNameWithoutExtension f)))
     |>  Seq.iter (fun (fromDir, toDir) -> CopyDir toDir fromDir (fun _ -> true))
 )
 
 // --------------------------------------------------------------------------------------
 // Clean build results
 
-let vsProjProps = 
-#if MONO
-    [ ("DefineConstants","MONO"); ("Configuration", configuration) ]
-#else
-    [ ("Configuration", configuration); ("Platform", "Any CPU") ]
-#endif
-
 Target "Clean" (fun _ ->
-    !! solutionFile |> MSBuildReleaseExt "" vsProjProps "Clean" |> ignore
-    CleanDirs ["bin"; "temp"; "docs/output"]
+    CleanDirs ["bin"; "temp"]
+)
+
+Target "CleanDocs" (fun _ ->
+    CleanDirs ["docs/output"]
 )
 
 // --------------------------------------------------------------------------------------
@@ -139,7 +134,11 @@ Target "Clean" (fun _ ->
 
 Target "Build" (fun _ ->
     !! solutionFile
-    |> MSBuildReleaseExt "" vsProjProps "Rebuild"
+#if MONO
+    |> MSBuildReleaseExt "" [ ("DefineConstants","MONO") ] "Rebuild"
+#else
+    |> MSBuildRelease "" "Rebuild"
+#endif
     |> ignore
 )
 
@@ -287,7 +286,6 @@ let createIndexFsx lang =
 // This block of code is omitted in the generated HTML documentation. Use
 // it to define helpers that you do not want to show in the documentation.
 #I "../../../bin"
-
 (**
 F# Project Scaffold ({0})
 =========================
@@ -376,10 +374,11 @@ Target "BuildPackage" DoNothing
 
 Target "All" DoNothing
 
-"AssemblyInfo"
+"Clean"
+  ==> "AssemblyInfo"
   ==> "Build"
-  ==> "CopyBinaries"
-  ==> "RunTests"
+//  ==> "CopyBinaries"
+//  ==> "RunTests"
   ==> "GenerateReferenceDocs"
   ==> "GenerateDocs"
 #if MONO
@@ -391,15 +390,16 @@ Target "All" DoNothing
   ==> "All"
   =?> ("ReleaseDocs",isLocalBuild)
 
-"GenerateHelp"
+"CleanDocs"
+  ==> "GenerateHelp"
   ==> "GenerateReferenceDocs"
   ==> "GenerateDocs"
 
+"CleanDocs"
+  ==> "GenerateHelpDebug"
+
 "GenerateHelpDebug"
   ==> "KeepRunning"
-
-"Clean"
-  ==> "Release"
 
 "BuildPackage"
   ==> "PublishNuget"
@@ -407,5 +407,5 @@ Target "All" DoNothing
 
 "ReleaseDocs"
   ==> "Release"
-
+  
 RunTargetOrDefault "All"
