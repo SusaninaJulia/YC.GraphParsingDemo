@@ -590,6 +590,7 @@
     <Content Include="Setup.fsx" />
     <Content Include="packages.config" />
     <Content Include="paket.references" />
+    <Content Include="yeahboy.PNG" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
