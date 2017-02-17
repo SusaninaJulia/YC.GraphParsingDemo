@@ -80,8 +80,9 @@ module Client =
         return output }
         |> wsfe.WithFormContainer 
 
-    let Graph (height, width, g: array<int*int*string*bool>, c: int) =
-        let button = Button [Text "Click to show"; Attr.Style "width: 540px; height: 90px"]
+    let Graph lbl (height, width, g: array<int*int*string*bool>, c: int) =
+        let hw = "height: " + snd(getFormSize 540 90) + "; width: " + fst(getFormSize 540 90)
+        let button = Button [Text lbl; Attr.Style hw] 
         button.OnClick (fun _ _ -> 
             JS.Window?draw1 g c
             button.Remove()) 
@@ -89,25 +90,23 @@ module Client =
             Div [Attr.Id "canvas"; Attr.Height height; Attr.Width width]
             button
             ]
-    let SPPF (height, width, g: array<(int*string)*(int*string)>, c: int) =
-        let button = Button [Text "Click to show"; Attr.Style "width: 540px; height: 90px"]
+
+    let SPPF lbl (height, width, g: array<(int*string)*(int*string)>, c: int) =
+        let button = Button [Text lbl; Attr.Style "width: 540px; height: 90px"]
         button.OnClick (fun _ _ -> 
             JS.Window?draw2 g c
             button.Remove()) 
         Div [
-            Div [Attr.Id "canvas"; Attr.Height height; Attr.Width width]
+            Div [Attr.Id "canvas"; Attr.Height height; Attr.Width width; ]
             button
             ]
-
     let ShowGraphImageControl lbl (graph: Parser.InputGraph) = 
-        wsff.OfElement(fun () -> Graph((fst(getFormSize 540 540)), (snd(getFormSize 540 540)), graph.edges, graph.countOfVertex))
-        |> wsfe.WithTextLabel lbl 
+        wsff.OfElement(fun () -> Graph lbl ((fst(getFormSize 540 540)), (snd(getFormSize 540 540)), graph.edges, graph.countOfVertex))
         |> wsfe.WithLabelAbove 
         |> wsfe.WithFormContainer  
 
-    let ShowTreeImageControl lbl (tree: Parser.ParsedSppf)  = 
-        wsff.OfElement(fun () -> SPPF((fst(getFormSize 540 540)), (snd(getFormSize 540 540)), tree.edges, tree.countOfVertex))
-        |> wsfe.WithTextLabel lbl 
+    let ShowTreeImageControl lbl  (tree: Parser.ParsedSppf)  = 
+        wsff.OfElement(fun () -> SPPF lbl ((fst(getFormSize 540 540)), (snd(getFormSize 540 540)), tree.edges, tree.countOfVertex)) 
         |> wsfe.WithLabelAbove 
         |> wsfe.WithFormContainer  
                         
@@ -167,7 +166,7 @@ module Client =
                                 return (graphImg, sppfImg)
                             | Server.Result.SucTreeGraph (tree, graph) ->
                                 let! graphImg = ShowGraphImageControl "Graph Visualization" graph
-                                let! sppfImg = ShowTreeImageControl "SPPF" tree
+                                let! sppfImg = ShowTreeImageControl  "SPPF" tree
                                 return (graphImg, sppfImg) }          
                           |> wsfe.WithFormContainer 
                           |> wsff.Horizontal  
