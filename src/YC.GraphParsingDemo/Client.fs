@@ -32,6 +32,15 @@ module Client =
             e)
     
     let style = "padding-top: 0px; background-color: #FF69B4; border-width: 3px; font-weight: bold; border-color: #000000; border-radius: 10px; color: #000000; height: " + fst(getFormSize 40 150) + "; width: " + snd(getFormSize 40 150) + "; font-size:" + fst(getFormSize 15 15);                                                                                              
+
+    let ChooseDefaultControl (defaultData: List<string * string>) = 
+        wsff.Do {
+            let! dataSelect = 
+                wsfc.Select 0 (("", "") :: defaultData)
+                |> wsfe.WithTextLabel "ChooseDefault"
+                |> setFormSize (getFormSize 30 210) "select" 
+                |> wsfe.WithFormContainer     
+            return dataSelect }
  
     let FileControl = 
         let readFile (elFrom: Element) (stateChanged: Event<_>) =
@@ -92,7 +101,8 @@ module Client =
             ]
 
     let SPPF lbl (height, width, g: array<(int*string)*(int*string)>, c: int) =
-        let button = Button [Text lbl; Attr.Style "width: 540px; height: 90px"]
+        let hw = "height: " + snd(getFormSize 540 90) + "; width: " + fst(getFormSize 540 90)
+        let button = Button [Text lbl; Attr.Style hw]
         button.OnClick (fun _ _ -> 
             JS.Window?draw2 g c
             button.Remove()) 
@@ -108,13 +118,40 @@ module Client =
     let ShowTreeImageControl lbl  (tree: Parser.ParsedSppf)  = 
         wsff.OfElement(fun () -> SPPF lbl ((fst(getFormSize 540 540)), (snd(getFormSize 540 540)), tree.edges, tree.countOfVertex)) 
         |> wsfe.WithLabelAbove 
-        |> wsfe.WithFormContainer  
-                        
-    let InputControl lbl defaultValue = 
+        |> wsfe.WithFormContainer          
+                                         
+    let InputGrammarControl lbl defaultData = 
        wsff.Do {
-            let! (fileInput) = wsff.Do {  
-                let! fileInput = FileControl
-                return  (fileInput) } |> wsfe.WithFormContainer                                      
+            let! (defaultValue, fileInput) = 
+                wsff.Do {  
+                    let! defaultValue = ChooseDefaultControl defaultData
+                    let! fileInput = FileControl
+                    return  (fileInput, defaultValue) }   
+                |> wsff.Horizontal                      
+                |> wsfe.WithFormContainer              
+            let txt = 
+                match fileInput with
+                | "" -> defaultValue
+                | _ -> fileInput
+            let! textInput =
+                wsfc.TextArea txt            
+                |> wsfe.WithTextLabel lbl
+                |> wsfe.WithLabelAbove
+                |> setFormSize (getFormSize 137 540) "textarea"     // 137 - form is bigger, but both on the same level     
+            return (textInput) }
+         |> wsff.FlipBody
+         |> wsff.Vertical
+         |> wsfe.WithFormContainer
+
+    let InputGraphControl lbl defaultData = 
+       wsff.Do {
+            let! (defaultValue, fileInput) = 
+                wsff.Do {  
+                    let! defaultValue = ChooseDefaultControl defaultData
+                    let! fileInput = FileControl
+                    return  (defaultValue, fileInput) }   
+                |> wsff.Horizontal                      
+                |> wsfe.WithFormContainer              
             let txt = 
                 match fileInput with
                 | "" -> defaultValue
@@ -128,34 +165,31 @@ module Client =
          |> wsff.FlipBody
          |> wsff.Vertical
          |> wsfe.WithFormContainer
-
     let Form = 
         let InputForm =   
-            let LeftInputForm =          
-                    wsff.Do {
-                        let! grammar = InputControl "Grammar" (Server.LoadDefaultFile Server.FileType.Grammar)
-                        let! subgraphCheckbox = wsfc.Checkbox false |> wsfe.WithTextLabel "Show formal subgraph" |> wsfe.WithLabelLeft |> wsfe.WithFormContainer
-
-                        return (grammar, subgraphCheckbox) }
-                    |> wsff.Vertical
-           
+            let LeftInputForm =         
+                wsff.Do {
+                    let! grammar = InputGrammarControl "Grammar" (Server.LoadDefaultFileNames Server.FileType.Grammar |> List.map (fun grmName -> grmName, Server.LoadDefaultFile Server.FileType.Grammar grmName))
+                    return (grammar) }
+                |> wsff.Vertical
             let RightInputForm  = 
                 wsff.Do {
-                    let! graph = InputControl "Graph" (Server.LoadDefaultFile Server.FileType.Graph)
-                    let! removeCheckbox = wsfc.Checkbox false |> wsfe.WithTextLabel "Remove redundant nodes" |> wsfe.WithLabelLeft|> wsfe.WithFormContainer 
-                    return(graph, removeCheckbox)}        
+                    let! graph = InputGraphControl "Graph" (Server.LoadDefaultFileNames Server.FileType.Graph |> List.map (fun grmName -> grmName, Server.LoadDefaultFile Server.FileType.Graph grmName))
+                    let! subgraphCheckbox = wsfc.Checkbox false |> wsfe.WithTextLabel "Show formal subgraph" |> wsfe.WithLabelLeft// |> wsfe.WithFormContainer
+                    let! removeCheckbox = wsfc.Checkbox false |> wsfe.WithTextLabel "Remove redundant nodes" |> wsfe.WithLabelLeft//|> wsfe.WithFormContainer 
+                    return(graph,subgraphCheckbox,removeCheckbox)}        
                 |> wsff.Vertical
+                |> wsfe.WithFormContainer
             
-            (wsff.Yield (fun (leftInput: string*bool) (rightInput: string*bool) -> (leftInput,  rightInput))
+            (wsff.Yield (fun (leftInput: string) (rightInput: string*bool*bool) -> (leftInput,  rightInput))
             <*> (LeftInputForm)
             <*> (RightInputForm))
             |> wsff.Horizontal
             |> wsfe.WithCustomSubmitButton ({ wsfe.FormButtonConfiguration.Default with 
                                                                                             Label = Some "SHOW GRAPH" 
                                                                                             Style = Some style })
-            |> wsff.Vertical
                 
-        let OutputForm (((grammar: string), ( removeCheckbox: bool)), ((graph: string), (subgraphCheckbox: bool))) =  
+        let OutputForm ((grammar: string), ((graph: string), (removeCheckbox: bool),  (subgraphCheckbox: bool))) =  
             let VisualizationWithRangeForm = 
                 let VisualizationForm  =                               
                         wsff.Do {
