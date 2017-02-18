@@ -41,7 +41,7 @@ module Server =
         match fileType with
         | Grammar ->
             match name with
-            | "1" -> @"[<Start>]
+            | "Math" -> @"[<Start>]
 s: s P n | n
 n: n M y | y
 y: L s R | INT"
@@ -54,7 +54,7 @@ d: U"
             |  _  -> ""
         | Graph ->
             match name with
-            | "1" -> @"digraph {
+            | "Math" -> @"digraph {
     0 -> 1 [label = L]
     1 -> 2 [label = INT]
     2 -> 3 [label = P]

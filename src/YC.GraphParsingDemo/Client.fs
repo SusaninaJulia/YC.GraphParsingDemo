@@ -120,16 +120,26 @@ module Client =
         |> wsfe.WithTextLabel lbl        
         |> wsfe.WithLabelAbove 
         |> wsfe.WithFormContainer           
-                                         
-    let InputGrammarControl lbl defaultData = 
-       wsff.Do {
+    
+    let VeryImportantForm = 
+        let hw = "height: " + snd(getFormSize 540 47) + "; width: " + fst(getFormSize 540 47)
+        wsff.OfElement(fun () -> Form [Attr.Style( "border-color: white; " + hw)])
+
+    let FileControlWithVeryImportantForm defaultData = 
+        wsff.Do {
             let! (defaultValue, fileInput) = 
-                wsff.Do {  
+                wsff.Do { 
                     let! defaultValue = ChooseDefaultControl defaultData
                     let! fileInput = FileControl
-                    return  (fileInput, defaultValue) }   
-                |> wsff.Horizontal                      
-                |> wsfe.WithFormContainer              
+                    return (fileInput, defaultValue) } 
+                |> wsff.Horizontal 
+            let! f = VeryImportantForm
+            return (defaultValue, fileInput) } 
+            |> wsfe.WithFormContainer                                      
+   
+    let InputGrammarControl lbl defaultData = 
+       wsff.Do {
+            let! (defaultValue, fileInput) = FileControlWithVeryImportantForm defaultData              
             let txt = 
                 match fileInput with
                 | "" -> defaultValue
@@ -138,7 +148,7 @@ module Client =
                 wsfc.TextArea txt            
                 |> wsfe.WithTextLabel lbl
                 |> wsfe.WithLabelAbove
-                |> setFormSize (getFormSize 137 540) "textarea"     // 137 - form is bigger, but both on the same level     
+                |> setFormSize (getFormSize 90 540) "textarea"     
             return (textInput) }
          |> wsff.FlipBody
          |> wsff.Vertical
