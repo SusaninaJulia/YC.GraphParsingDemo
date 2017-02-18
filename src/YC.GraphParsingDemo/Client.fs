@@ -89,36 +89,37 @@ module Client =
         return output }
         |> wsfe.WithFormContainer 
 
-    let Graph lbl (height, width, g: array<int*int*string*bool>, c: int) =
+    let Graph lbl (height, width, g: array<int*int*string*bool>, c: int) (canvas: Element) =
         let hw = "height: " + snd(getFormSize 540 90) + "; width: " + fst(getFormSize 540 90)
         let button = Button [Text lbl; Attr.Style hw] 
         button.OnClick (fun _ _ -> 
-            JS.Window?draw1 g c
+            JS.Window?draw1 g c canvas.Id
             button.Remove()) 
         Div [
-            Div [Attr.Id "canvas"; Attr.Height height; Attr.Width width]
+            canvas
             button
             ]
-
-    let SPPF lbl (height, width, g: array<int*string*int*string>, c: int) =
+    let SPPF lbl (height, width, g: array<int*string*int*string>, c: int)  (canvas: Element) =
         let hw = "height: " + snd(getFormSize 540 90) + "; width: " + fst(getFormSize 540 90)
         let button = Button [Text lbl; Attr.Style hw]
         button.OnClick (fun _ _ -> 
-            JS.Window?draw2 g c
+            JS.Window?draw2 g c canvas.Id
             button.Remove()) 
         Div [
-            Div [Attr.Id "canvas"; Attr.Height height; Attr.Width width; ]
+            canvas
             button
             ]
-    let ShowGraphImageControl lbl (graph: Parser.InputGraph) = 
-        wsff.OfElement(fun () -> Graph lbl ((fst(getFormSize 540 540)), (snd(getFormSize 540 540)), graph.edges, graph.countOfVertex))
+    let ShowGraphImageControl lbl (graph: Parser.InputGraph) id = 
+        wsff.OfElement(fun () -> Graph lbl ((fst(getFormSize 540 540)), (snd(getFormSize 540 540)), graph.edges, graph.countOfVertex) (Div [Attr.Id id; Attr.Height (snd(getFormSize 540 540)); Attr.Width(snd(getFormSize 540 540))]))
+        |> wsfe.WithTextLabel lbl        
         |> wsfe.WithLabelAbove 
         |> wsfe.WithFormContainer  
 
-    let ShowTreeImageControl lbl  (tree: Parser.ParsedSppf)  = 
-        wsff.OfElement(fun () -> SPPF lbl ((fst(getFormSize 540 540)), (snd(getFormSize 540 540)), tree.edges, tree.countOfVertex)) 
+    let ShowTreeImageControl lbl  (tree: Parser.ParsedSppf) id  = 
+        wsff.OfElement(fun () -> SPPF lbl ((fst(getFormSize 540 540)), (snd(getFormSize 540 540)), tree.edges, tree.countOfVertex)  (Div [Attr.Id id; Attr.Height (snd(getFormSize 540 540)); Attr.Width(snd(getFormSize 540 540))]))
+        |> wsfe.WithTextLabel lbl        
         |> wsfe.WithLabelAbove 
-        |> wsfe.WithFormContainer          
+        |> wsfe.WithFormContainer           
                                          
     let InputGrammarControl lbl defaultData = 
        wsff.Do {
@@ -199,8 +200,8 @@ module Client =
                                 let! sppfImg = ErrorControl msg "SPPF"
                                 return (graphImg, sppfImg)
                             | Server.Result.SucTreeGraph (tree, graph) ->
-                                let! graphImg = ShowGraphImageControl "Graph Visualization" graph
-                                let! sppfImg = ShowTreeImageControl  "SPPF" tree
+                                let! graphImg = ShowGraphImageControl "Graph Visualization" graph "canvas1"
+                                let! sppfImg = ShowTreeImageControl  "SPPF" tree "canvas2"
                                 return (graphImg, sppfImg) }          
                           |> wsfe.WithFormContainer 
                           |> wsff.Horizontal  
@@ -230,8 +231,8 @@ module Client =
                                     let! sppfPathImg = ErrorControl msg "SPPF Path" 
                                     return (pathImg, sppfPathImg)
                                 | Server.Result.SucTreeGraph (tree, graph) ->
-                                    let! pathImg = ShowGraphImageControl "Path" graph
-                                    let! sppfPathImg = ShowTreeImageControl "SPPF Path" tree
+                                    let! pathImg = ShowGraphImageControl "Path" graph "canva3"
+                                    let! sppfPathImg = ShowTreeImageControl "SPPF Path" tree "canvas4"
                                     return (pathImg, sppfPathImg)
                             else
                                 let! pathImg = ErrorControl "Incorrect range" "Path"
