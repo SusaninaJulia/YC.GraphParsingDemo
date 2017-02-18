@@ -579,7 +579,7 @@ module Parser =
                                 then
                                     cur.Others.RemoveAt i
                                     cur.Others.Insert(i,pckd)
-                    Others(NonTerminal(cur), false, (cur.Name, cur.Extension))
+                    Others(NonTerminal(cur), true, (cur.Name, cur.Extension))
             | :? IntermidiateNode as cur ->
                 if List.contains current been
                 then
@@ -613,6 +613,6 @@ module Parser =
                                     then
                                         cur.Others.RemoveAt i
                                         cur.Others.Insert(i,pckd)
-                        Others (Intermidiate(cur), false, (cur.Slot, cur.Extension))
+                        Others (Intermidiate(cur), true, (cur.Slot, cur.Extension))
         f tree.Root false |> ignore
         tree
