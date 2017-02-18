@@ -28,12 +28,12 @@ module Server =
         match fileType with
         | Grammar ->
             [
-                "1"
+                "Math"
                 "2"
             ]
         | Graph ->
             [
-                "1"
+                "Math"
                 "2"
             ]
     [<Rpc>]
@@ -71,7 +71,7 @@ d: U"
     12 -> 13 [label = INT]            
 }"
             | "2" -> @"digraph {
-    0 -> 1 [label = U]
+    0 -> 1 [label = A]
     1 -> 2 [label = C]            
 }"
             |  _  -> ""
@@ -95,23 +95,23 @@ d: U"
                             let formalSubgraph = Parser.getFormalSubgraph minimisedTree (Parser.graphToMap graph)
                             if formalSubgraph.countOfVertex <> 0
                             then
-                                SucTreeGraph(Parser.treeToParsed minimisedTree.Root (fun x -> true), formalSubgraph)
+                                SucTreeGraph(Parser.treeToParsed minimisedTree minimisedTree.Root (fun x -> true), formalSubgraph)
                             else
                                 Error "There is no verticles in subgraph"
                         else
                             let minimisedTree = Parser.minimiseSppf tree
-                            SucTreeGraph (Parser.treeToParsed minimisedTree.Root (fun x -> true), Parser.toInputGraph graph)
+                            SucTreeGraph (Parser.treeToParsed minimisedTree minimisedTree.Root (fun x -> true), Parser.toInputGraph graph)
                     else
                         if isFormal
                         then
                             let formalSubgraph = Parser.getFormalSubgraph tree (Parser.graphToMap graph)
                             if formalSubgraph.countOfVertex <> 0
                             then
-                                SucTreeGraph(Parser.treeToParsed tree.Root (fun x -> true), formalSubgraph)
+                                SucTreeGraph(Parser.treeToParsed tree tree.Root (fun x -> true), formalSubgraph)
                             else
                                 Error "There is no verticles in subgraph"
                         else
-                            SucTreeGraph (Parser.treeToParsed tree.Root (fun x -> true), Parser.toInputGraph graph)
+                            SucTreeGraph (Parser.treeToParsed tree tree.Root (fun x -> true), Parser.toInputGraph graph)
         with
         | e -> Error e.Message
 
@@ -136,7 +136,7 @@ d: U"
                     match nTNode with
                     | Parser.ResNode.Suc(node) ->
                         let edges, nodes = Parser.getEdgesOfMinLen node
-                        let tree, graph = Parser.getTreeOfMnLn edges nodes node (Parser.toInputGraph graph)
+                        let tree, graph = Parser.getTreeOfMnLn mtree edges nodes node (Parser.toInputGraph graph)
                         SucTreeGraph(tree, graph)
                     |  Parser.ResNode.None -> 
                         Error "No such nodes found"
