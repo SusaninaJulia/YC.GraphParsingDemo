@@ -9,7 +9,7 @@ var draw1 = function (edges) {
                         g.addNode(v[i][1], { label: v[i][1] });
 
                         if (v[i][3]) g.addEdge(v[i][0], v[i][1], { stroke: "#ADFF2F", fill: "#ADFF2F", label: v[i][2], directed : true });
-                        if (!v[i][3]) g.addEdge(v[i][0], v[i][1], { stroke: "#A9A9A9", fill: "#A9A9A9", label: v[i][2] });
+                        if (!v[i][3]) g.addEdge(v[i][0], v[i][1], { stroke: "#A9A9A9", fill: "#A9A9A9", label: v[i][2], directed : true});
                         i = i + 1;
                     }
 
@@ -31,7 +31,7 @@ var draw2 = function (edges) {
                         g.addNode(v[i][0], { label: v[i][1] });
                         g.addNode(v[i][2], { label: v[i][3] });
 
-                        g.addEdge(v[i][0], v[i][2], { stroke: "#ADFF2F", fill: "#ADFF2F", directed : true });
+                        g.addEdge(v[i][0], v[i][2], { stroke: "#A9A9A9", fill: "#A9A9A9", directed : true });
                         i = i + 1;
                     }
 

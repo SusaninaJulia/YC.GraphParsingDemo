@@ -21,8 +21,7 @@ module Parser =
             edges : InputEdge[]
         }
 
-    type SppfVertex = int * string
-    type SppfEdge = SppfVertex * SppfVertex
+    type SppfEdge = int * string * int * string
     type ParsedSppf =
         {
             countOfVertex : int;
@@ -152,7 +151,7 @@ module Parser =
         let mutable count = 0
         let mutable been = []
         let mutable verts : Map<string, int> = Map.empty
-        let rec f (curr : obj) (prev : SppfVertex) : unit =
+        let rec f (curr : obj) (prev : int * string) : unit =
             if curr <> null then
                 match curr with
                 | :? TerminalNode as node ->
@@ -163,12 +162,12 @@ module Parser =
                         if List.contains curr been
                         then
                             let tcount = Map.find str verts
-                            edges <- List.append edges [(prev, (tcount, str))]
+                            edges <- List.append edges [(fst prev, snd prev, tcount, str)]
                         else
                             verts <- Map.add str count verts
                             if prev <> (-1, "")
                             then
-                                edges <- List.append edges [(prev, (count, str))]
+                                edges <- List.append edges [(fst prev, snd prev, count, str)]
                             count <- count + 1
                             been <- List.append been [node]
                 | :? PackedNode as node ->
@@ -178,13 +177,13 @@ module Parser =
                         if List.contains curr been
                         then
                             let tcount = Map.find str verts
-                            edges <- List.append edges [(prev, (tcount, str))]
+                            edges <- List.append edges [(fst prev, snd prev, tcount, str)]
                         else
                             let vert = (count, str)
                             verts <- Map.add str count verts
                             if prev <> (-1, "")
                             then
-                                edges <- List.append edges [(prev, vert)]
+                                edges <- List.append edges [(fst prev, snd prev, fst vert, snd vert)]
                             count <- count + 1
                             been <- List.append been [node]
                             f node.Left vert
@@ -192,18 +191,18 @@ module Parser =
                 | :? NonTerminalNode as node ->
                     if (filter curr)
                     then
-                        let fst, scnd = unpackExtension(node.Extension)
-                        let str = (node.Name).ToString() + " " + (fst.ToString()) + " " + (scnd.ToString())
+                        let fsti, scnd = unpackExtension(node.Extension)
+                        let str = (node.Name).ToString() + " " + (fsti.ToString()) + " " + (scnd.ToString())
                         if List.contains curr been
                         then
                             let tcount = Map.find str verts
-                            edges <- List.append edges [(prev, (tcount, str))]                            
+                            edges <- List.append edges [(fst prev, snd prev, tcount, str)]                            
                         else
                             let vert = (count, str)
                             verts <- Map.add str count verts
                             if prev <> (-1, "")
                             then
-                                edges <- List.append edges [(prev, vert)]
+                                edges <- List.append edges [(fst prev, snd prev, fst vert, snd vert)]
                             count <- count + 1
                             been <- List.append been [node]
                             f node.First vert
@@ -214,18 +213,18 @@ module Parser =
                 | :? IntermidiateNode as node ->
                     if (filter curr)
                     then
-                        let fst, scnd = unpackExtension(node.Extension)
-                        let str = (node.Slot).ToString() + " " + (fst.ToString()) + " " + (scnd.ToString())
+                        let fsti, scnd = unpackExtension(node.Extension)
+                        let str = (node.Slot).ToString() + " " + (fsti.ToString()) + " " + (scnd.ToString())
                         if List.contains curr been
                         then
                             let tcount = Map.find str verts
-                            edges <- List.append edges [(prev, (tcount, str))]                            
+                            edges <- List.append edges [(fst prev, snd prev, tcount, str)]                            
                         else
                             let vert = (count, str)
                             verts <- Map.add str count verts
                             if prev <> (-1, "")
                             then
-                                edges <- List.append edges [(prev, vert)]
+                                edges <- List.append edges [(fst prev, snd prev, fst vert, snd vert)]
                             count <- count + 1
                             been <- List.append been [node]
                             f node.First vert

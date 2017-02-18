@@ -16,10 +16,7 @@ open Yard.Generators.Common
 module Server = 
 
     type Result =
-        | SucSppf of Tree<Parser.Token>
-        | SucSppfGraph of Tree<Parser.Token> * Parser.InputGraph
         | SucTreeGraph of Parser.ParsedSppf * Parser.InputGraph
-        | SucGraph of Parser.InputGraph
         | Error of string
 
     type FileType =
@@ -80,7 +77,7 @@ d: U"
             |  _  -> ""
 
     [<Rpc>]
-    let draw (grammar'text : string) (graph'text : string) (isMinimised : bool) (isFormal : bool)=
+    let draw (grammar'text : string) (graph'text : string) (isFormal : bool) (isMinimised : bool)=
         try
             if grammar'text = "" && graph'text = "" then Error "Empty input"
             elif graph'text = "" then Error "Empty graph input"

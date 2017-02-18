@@ -100,7 +100,7 @@ module Client =
             button
             ]
 
-    let SPPF lbl (height, width, g: array<(int*string)*(int*string)>, c: int) =
+    let SPPF lbl (height, width, g: array<int*string*int*string>, c: int) =
         let hw = "height: " + snd(getFormSize 540 90) + "; width: " + fst(getFormSize 540 90)
         let button = Button [Text lbl; Attr.Style hw]
         button.OnClick (fun _ _ -> 
