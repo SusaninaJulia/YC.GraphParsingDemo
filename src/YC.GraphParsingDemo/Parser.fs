@@ -420,56 +420,77 @@ module Parser =
         f tree.Root
 
     let getEdgesOfMinLen (node : NonTerminalNode) =
+        let mutable been : list<obj> = []
         let rec f (curr : obj) (map : list<int * int>) (len : int) (nodes : list<obj>) =
             match curr with
                 | :? TerminalNode as node ->
-                    if node.Name <> -1
+                    if not (List.contains curr been)
                     then
-                        if node.Extension <> packExtension -1 -1
+                        been <- List.append been [curr]    
+                        if node.Name <> -1
                         then
-                            (List.append map [(unpackExtension node.Extension)] , len + 1, List.append nodes [node] )
+                            if node.Extension <> packExtension -1 -1
+                            then
+                                (List.append map [(unpackExtension node.Extension)] , len + 1, List.append nodes [node] )
+                            else
+                                (map, len, nodes)
                         else
                             (map, len, nodes)
                     else
                         (map, len, nodes)
                 | :? PackedNode as node ->
-                    let mapl, lenl, ndsl = f node.Left map len nodes
-                    let mapr, lenr, ndsr = f node.Right map len nodes
-                    (List.append mapl mapr, lenr + lenl, List.append (List.append ndsl ndsr) [node] )
+                    if not (List.contains curr been)
+                    then
+                        been <- List.append been [curr]
+                        let mapl, lenl, ndsl = f node.Left map len nodes
+                        let mapr, lenr, ndsr = f node.Right map len nodes
+                        (List.append mapl mapr, lenr + lenl, List.append (List.append ndsl ndsr) [node] )
+                    else
+                        (map, len, nodes)
                 | :? NonTerminalNode as node ->
-                    let mp, ln, nods = f node.First map len nodes
-                    let mutable min = ln
-                    let mutable res = mp
-                    let mutable ndes = nods
-                    if node.Others <> null
+                    if not (List.contains curr been)
                     then
-                        for t in node.Others do
-                            let mpn, lnn, nds = f t map len nodes
-                            if lnn < min
-                            then
-                                min <- lnn
-                                res <- mpn
-                                ndes <- nds
-                            else do()
-                    else do()
-                    (res, min, List.append ndes [node])
+                        been <- List.append been [curr]
+                        let mp, ln, nods = f node.First map len nodes
+                        let mutable min = ln
+                        let mutable res = mp
+                        let mutable ndes = nods
+                        if node.Others <> null
+                        then
+                            for t in node.Others do
+                                let mpn, lnn, nds = f t map len nodes
+                                if lnn < min
+                                then
+                                    min <- lnn
+                                    res <- mpn
+                                    ndes <- nds
+                                else do()
+                        else do()
+                        (res, min, List.append ndes [node])
+                    else
+                        (map, len, nodes)
                 | :? IntermidiateNode as node ->
-                    let mp, ln, nods = f node.First map len nodes
-                    let mutable min = ln
-                    let mutable res = mp
-                    let mutable ndes = nods
-                    if node.Others <> null
+                    if not (List.contains curr been)
                     then
-                        for t in node.Others do
-                            let mpn, lnn, nds = f t map len nodes
-                            if lnn < min
-                            then
-                                min <- lnn
-                                res <- mpn
-                                ndes <- nds
-                            else do()
-                    else do()
-                    (res, min, List.append ndes [node])
+                        been <- List.append been [curr]
+                        let mp, ln, nods = f node.First map len nodes
+                        let mutable min = ln
+                        let mutable res = mp
+                        let mutable ndes = nods
+                        if node.Others <> null
+                        then
+                            for t in node.Others do
+                                let mpn, lnn, nds = f t map len nodes
+                                if lnn < min
+                                then
+                                    min <- lnn
+                                    res <- mpn
+                                    ndes <- nds
+                                else do()
+                        else do()
+                        (res, min, List.append ndes [node])
+                    else
+                        (map, len, nodes)
         let edges, _, nodes = f node [] 0 []
         (edges, nodes)
 
@@ -501,20 +522,17 @@ module Parser =
         | Intermidiate(trt) -> trt :> INode
 
     let minimiseSppf (tree : Tree<Token>) =
-        let mutable been : list<obj> = []
-        let rec f (current : obj) (prevAble : bool) : ResVert =
+        let rec f (current : obj) (prevAble : bool) (been : list<obj>): ResVert =
             match current with
             | :? TerminalNode as cur ->
-                been <- List.append been [cur]
                 Others(Terminal(cur), true, (cur.Name, cur.Extension))
             | :? PackedNode as cur ->
                 if List.contains current been
                 then
                     Packed(cur, false)
                 else
-                    been <- List.append been [cur]
-                    let l = f cur.Left true
-                    let r = f cur.Right true
+                    let l = f cur.Left true (List.append been [cur])
+                    let r = f cur.Right true (List.append been [cur])
                     match l, r with
                     | Others(vrtl, isl, extl), Others(vrtr, isr, extr) ->
                         if snd extl = packExtension -1 -1 || fst extl = -1 then
@@ -560,10 +578,9 @@ module Parser =
             | :? NonTerminalNode as cur ->
                 if List.contains current been
                 then
-                    Others(NonTerminal(cur), false, (cur.Name, cur.Extension))
+                    Others(NonTerminal(cur), true, (cur.Name, cur.Extension))
                 else
-                    been <- List.append been [cur]
-                    let fs = f cur.First false
+                    let fs = f cur.First false (List.append been [cur])
                     match fs with
                     | Packed(pckd, is) ->
                         if is
@@ -572,7 +589,7 @@ module Parser =
                     if cur.Others <> Unchecked.defaultof<_>
                     then
                         for i in 0..cur.Others.Count - 1 do
-                            let rs = f (cur.Others.Item i) false
+                            let rs = f (cur.Others.Item i) false (List.append been [cur])
                             match rs with
                             | Packed(pckd, is) ->
                                 if is
@@ -583,12 +600,11 @@ module Parser =
             | :? IntermidiateNode as cur ->
                 if List.contains current been
                 then
-                    Others(Intermidiate(cur), false, (cur.Slot, cur.Extension))
+                    Others(Intermidiate(cur), true, (cur.Slot, cur.Extension))
                 else
-                    been <- List.append been [cur]
                     if cur.Others = Unchecked.defaultof<_>
                     then
-                        let res = f cur.First true
+                        let res = f cur.First true (List.append been [cur])
                         match res with
                         | Others(_, _, _) ->
                             res
@@ -597,7 +613,7 @@ module Parser =
                             then res
                             else Packed(vrt, true)                        
                     else
-                        let fs = f cur.First false
+                        let fs = f cur.First false (List.append been [cur])
                         match fs with
                         | Packed(pckd, is) ->
                             if is
@@ -606,7 +622,7 @@ module Parser =
                         if cur.Others <> Unchecked.defaultof<_>
                         then
                             for i in 0..cur.Others.Count - 1 do
-                                let rs = f (cur.Others.Item i) false
+                                let rs = f (cur.Others.Item i) false (List.append been [cur])
                                 match rs with
                                 | Packed(pckd, is) ->
                                     if is
@@ -614,5 +630,5 @@ module Parser =
                                         cur.Others.RemoveAt i
                                         cur.Others.Insert(i,pckd)
                         Others (Intermidiate(cur), true, (cur.Slot, cur.Extension))
-        f tree.Root false |> ignore
+        f tree.Root false [] |> ignore
         tree
