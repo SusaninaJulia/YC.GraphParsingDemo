@@ -30,8 +30,20 @@ module Client =
                 .Css("width", width)
                 .Ignore
             e)
-    
+    let graphSize = 540 * screenWidth / 1366
+    let formH = fst(getFormSize 90 540)
+    let formW = snd(getFormSize 90 540)
+
     let style = "padding-top: 0px; background-color: #FF69B4; border-width: 3px; font-weight: bold; border-color: #000000; border-radius: 10px; color: #000000; height: " + fst(getFormSize 40 150) + "; width: " + snd(getFormSize 40 150) + "; font-size:" + fst(getFormSize 15 15);                                                                                              
+
+    let ChooseDefaultControl (defaultData: List<string * string>) = 
+        wsff.Do {
+            let! dataSelect = 
+                wsfc.Select 0 (("", "") :: defaultData)
+                |> wsfe.WithTextLabel "ChooseDefault"
+                |> setFormSize (getFormSize 30 150) "select" 
+                |> wsfe.WithFormContainer     
+            return dataSelect }
  
     let FileControl = 
         let readFile (elFrom: Element) (stateChanged: Event<_>) =
@@ -76,45 +88,67 @@ module Client =
             wsff.OfElement (fun () -> TextArea [Attr.ReadOnly "readonly"; Text ("Error: " + errortxt)])
             |> wsfe.WithTextLabel lbl
             |> wsfe.WithLabelAbove
-            |> setFormSize (getFormSize 90 540) "textarea" 
+            |> setFormSize (formH, formW) "textarea" 
         return output }
         |> wsfe.WithFormContainer 
 
-    let Graph lbl (height, width, g: array<int*int*string*bool>, c: int) =
-        let hw = "height: " + snd(getFormSize 540 90) + "; width: " + fst(getFormSize 540 90)
-        let button = Button [Text lbl; Attr.Style hw] 
+    let Graph lbl (g: array<int*int*string*bool>, c: int) (canvas: Element) =
+        let hw = "height: " + formH + "; width: " + formW
+        let button = Button [Text lbl; Attr.Style hw]
+        canvas.OnClick (fun _ _ -> 
+            canvas.Clear()
+            JS.Window?draw(JS.Window?createGraph g c canvas.Id) canvas.Id graphSize) 
         button.OnClick (fun _ _ -> 
-            JS.Window?draw1 g c
-            button.Remove()) 
+            JS.Window?draw(JS.Window?createGraph g c canvas.Id) canvas.Id graphSize
+            button.Remove())     
         Div [
-            Div [Attr.Id "canvas"; Attr.Height height; Attr.Width width]
+            canvas
             button
             ]
-
-    let SPPF lbl (height, width, g: array<(int*string)*(int*string)>, c: int) =
-        let button = Button [Text lbl; Attr.Style "width: 540px; height: 90px"]
+    let SPPF lbl (g: array<int*string*int*string>, c: int)  (canvas: Element) =
+        let hw = "height: " + formH + "; width: " + formW
+        let button = Button [Text lbl; Attr.Style hw]
+        canvas.OnClick (fun _ _ -> 
+            canvas.Clear()
+            JS.Window?draw(JS.Window?createTree g c canvas.Id) canvas.Id graphSize) 
         button.OnClick (fun _ _ -> 
-            JS.Window?draw2 g c
+            JS.Window?draw(JS.Window?createTree g c canvas.Id) canvas.Id graphSize
             button.Remove()) 
         Div [
-            Div [Attr.Id "canvas"; Attr.Height height; Attr.Width width; ]
+            canvas
             button
             ]
-    let ShowGraphImageControl lbl (graph: Parser.InputGraph) = 
-        wsff.OfElement(fun () -> Graph lbl ((fst(getFormSize 540 540)), (snd(getFormSize 540 540)), graph.edges, graph.countOfVertex))
+    let ShowGraphImageControl lbl (graph: Parser.InputGraph) id = 
+        wsff.OfElement(fun () -> Graph lbl (graph.edges, graph.countOfVertex) (Div [Attr.Id id]))
+        |> wsfe.WithTextLabel lbl        
         |> wsfe.WithLabelAbove 
         |> wsfe.WithFormContainer  
 
-    let ShowTreeImageControl lbl  (tree: Parser.ParsedSppf)  = 
-        wsff.OfElement(fun () -> SPPF lbl ((fst(getFormSize 540 540)), (snd(getFormSize 540 540)), tree.edges, tree.countOfVertex)) 
+    let ShowTreeImageControl lbl  (tree: Parser.ParsedSppf) id  = 
+        wsff.OfElement(fun () -> SPPF lbl (tree.edges, tree.countOfVertex)  (Div [Attr.Id id]))
+        |> wsfe.WithTextLabel lbl        
         |> wsfe.WithLabelAbove 
-        |> wsfe.WithFormContainer  
-                        
-    let InputControl lbl defaultValue = 
+        |> wsfe.WithFormContainer           
+    
+    let VeryImportantForm = 
+        let hw = "height: " + snd(getFormSize 540 47) + "; width: " + fst(getFormSize 540 47)
+        wsff.OfElement(fun () -> Form [Attr.Style( "border-color: white; " + hw)])
+
+    let FileControlWithVeryImportantForm defaultData = 
+        wsff.Do {
+            let! (defaultValue, fileInput) = 
+                wsff.Do { 
+                    let! defaultValue = ChooseDefaultControl defaultData
+                    let! fileInput = FileControl
+                    return (fileInput, defaultValue) } 
+                |> wsff.Horizontal 
+            let! f = VeryImportantForm
+            return (defaultValue, fileInput) } 
+            |> wsfe.WithFormContainer                                      
+   
+    let InputGrammarControl lbl defaultData = 
        wsff.Do {
-            let! (fileInput) = wsff.Do {  
-                let! fileInput = FileControl
-                return  (fileInput) } |> wsfe.WithFormContainer                                      
+            let! (defaultValue, fileInput) = FileControlWithVeryImportantForm defaultData              
             let txt = 
                 match fileInput with
                 | "" -> defaultValue
@@ -123,50 +157,70 @@ module Client =
                 wsfc.TextArea txt            
                 |> wsfe.WithTextLabel lbl
                 |> wsfe.WithLabelAbove
-                |> setFormSize (getFormSize 90 540) "textarea"          
+                |> setFormSize (formH, formW) "textarea"     
             return (textInput) }
          |> wsff.FlipBody
          |> wsff.Vertical
          |> wsfe.WithFormContainer
 
+    let InputGraphControl lbl defaultData = 
+       wsff.Do {
+            let! (defaultValue, fileInput) = 
+                wsff.Do {  
+                    let! defaultValue = ChooseDefaultControl defaultData
+                    let! fileInput = FileControl
+                    return  (defaultValue, fileInput) }   
+                |> wsff.Horizontal                      
+                |> wsfe.WithFormContainer              
+            let txt = 
+                match fileInput with
+                | "" -> defaultValue
+                | _ -> fileInput
+            let! textInput =
+                wsfc.TextArea txt            
+                |> wsfe.WithTextLabel lbl
+                |> wsfe.WithLabelAbove
+                |> setFormSize (formH, formW) "textarea"          
+            return (textInput) }
+         |> wsff.FlipBody
+         |> wsff.Vertical
+         |> wsfe.WithFormContainer
     let Form = 
         let InputForm =   
-            let LeftInputForm =          
-                    wsff.Do {
-                        let! grammar = InputControl "Grammar" (Server.LoadDefaultFile Server.FileType.Grammar)
-                        let! subgraphCheckbox = wsfc.Checkbox false |> wsfe.WithTextLabel "Show formal subgraph" |> wsfe.WithLabelLeft |> wsfe.WithFormContainer
-
-                        return (grammar, subgraphCheckbox) }
-                    |> wsff.Vertical
-           
+            let LeftInputForm =         
+                wsff.Do {
+                    let! grammar = InputGrammarControl "Grammar" (Server.LoadDefaultFileNames Server.FileType.Grammar |> List.map (fun grmName -> grmName, Server.LoadDefaultFile Server.FileType.Grammar grmName))
+                    return (grammar) }
+                |> wsff.Vertical
             let RightInputForm  = 
                 wsff.Do {
-                    let! graph = InputControl "Graph" (Server.LoadDefaultFile Server.FileType.Graph)
-                    let! removeCheckbox = wsfc.Checkbox false |> wsfe.WithTextLabel "Remove redundant nodes" |> wsfe.WithLabelLeft|> wsfe.WithFormContainer 
-                    return(graph, removeCheckbox)}        
+                    let! graph = InputGraphControl "Graph" (Server.LoadDefaultFileNames Server.FileType.Graph |> List.map (fun grmName -> grmName, Server.LoadDefaultFile Server.FileType.Graph grmName))
+                    let! subgraphCheckbox = wsfc.Checkbox false |> wsfe.WithTextLabel "Show formal subgraph" |> wsfe.WithLabelLeft
+                    let! removeCheckbox = wsfc.Checkbox false |> wsfe.WithTextLabel "Remove redundant nodes" |> wsfe.WithLabelLeft
+                    return(graph,subgraphCheckbox,removeCheckbox)}        
                 |> wsff.Vertical
+                |> wsfe.WithFormContainer
             
-            (wsff.Yield (fun (leftInput: string*bool) (rightInput: string*bool) -> (leftInput,  rightInput))
+            (wsff.Yield (fun (leftInput: string) (rightInput: string*bool*bool) -> (leftInput,  rightInput))
             <*> (LeftInputForm)
             <*> (RightInputForm))
             |> wsff.Horizontal
             |> wsfe.WithCustomSubmitButton ({ wsfe.FormButtonConfiguration.Default with 
                                                                                             Label = Some "SHOW GRAPH" 
                                                                                             Style = Some style })
-            |> wsff.Vertical
                 
-        let OutputForm (((grammar: string), ( removeCheckbox: bool)), ((graph: string), (subgraphCheckbox: bool))) =  
+        let OutputForm ((grammar: string), ((graph: string), (subgraphCheckbox: bool),  (removeCheckbox: bool))) =  
             let VisualizationWithRangeForm = 
                 let VisualizationForm  =                               
                         wsff.Do {
-                            match Server.draw grammar graph removeCheckbox subgraphCheckbox with
+                            match Server.draw grammar graph subgraphCheckbox removeCheckbox with
                             | Server.Result.Error msg ->
                                 let! graphImg = ErrorControl msg "Graph Visualization"
                                 let! sppfImg = ErrorControl msg "SPPF"
                                 return (graphImg, sppfImg)
                             | Server.Result.SucTreeGraph (tree, graph) ->
-                                let! graphImg = ShowGraphImageControl "Graph Visualization" graph
-                                let! sppfImg = ShowTreeImageControl  "SPPF" tree
+                                let! graphImg = ShowGraphImageControl "Graph Visualization" graph "canvas1"
+                                let! sppfImg = ShowTreeImageControl  "SPPF" tree "canvas2"
                                 return (graphImg, sppfImg) }          
                           |> wsfe.WithFormContainer 
                           |> wsff.Horizontal  
@@ -196,8 +250,8 @@ module Client =
                                     let! sppfPathImg = ErrorControl msg "SPPF Path" 
                                     return (pathImg, sppfPathImg)
                                 | Server.Result.SucTreeGraph (tree, graph) ->
-                                    let! pathImg = ShowGraphImageControl "Path" graph
-                                    let! sppfPathImg = ShowTreeImageControl "SPPF Path" tree
+                                    let! pathImg = ShowGraphImageControl "Path" graph "canvas3"
+                                    let! sppfPathImg = ShowTreeImageControl "SPPF Path" tree "canvas4"
                                     return (pathImg, sppfPathImg)
                             else
                                 let! pathImg = ErrorControl "Incorrect range" "Path"

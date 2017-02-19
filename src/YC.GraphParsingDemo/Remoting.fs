@@ -16,10 +16,7 @@ open Yard.Generators.Common
 module Server = 
 
     type Result =
-        | SucSppf of Tree<Parser.Token>
-        | SucSppfGraph of Tree<Parser.Token> * Parser.InputGraph
         | SucTreeGraph of Parser.ParsedSppf * Parser.InputGraph
-        | SucGraph of Parser.InputGraph
         | Error of string
 
     type FileType =
@@ -27,33 +24,60 @@ module Server =
         | Grammar
 
     [<Rpc>]
-    let LoadDefaultFile (fileType: FileType) =
+    let LoadDefaultFileNames (fileType: FileType) =
         match fileType with
         | Grammar ->
-            @"[<Start>]
+            [
+                "Math"
+                "Bio"
+            ]
+        | Graph ->
+            [
+                "Math"
+                "Bio"
+            ]
+    [<Rpc>]
+    let LoadDefaultFile (fileType: FileType) name =
+        match fileType with
+        | Grammar ->
+            match name with
+            | "Math" -> @"[<Start>]
 s: s P n | n
 n: n M y | y
 y: L s R | INT"
+            | "Bio" -> @"[<Start>]
+s: a b | b c | d
+a: A
+b: C
+c: G
+d: U"
+            |  _  -> ""
         | Graph ->
-            @"digraph {
-            0 -> 1 [label = L]
-            1 -> 2 [label = INT]
-            2 -> 3 [label = P]
-            3 -> 4 [label = INT]
-            1 -> 5 [label = INT]
-            5 -> 6 [label = M]
-            6 -> 7 [label = INT]
-            7 -> 8 [label = P]
-            8 -> 4 [label = INT]
-            4 -> 9 [label = R]
-            9 -> 10 [label = M]
-            10 -> 11 [label = INT]
-            11 -> 12 [label = P]
-            12 -> 13 [label = INT]            
+            match name with
+            | "Math" -> @"digraph {
+    0 -> 1 [label = L]
+    1 -> 2 [label = INT]
+    2 -> 3 [label = P]
+    3 -> 4 [label = INT]
+    1 -> 5 [label = INT]
+    5 -> 6 [label = M]
+    6 -> 7 [label = INT]
+    7 -> 8 [label = P]
+    8 -> 4 [label = INT]
+    4 -> 9 [label = R]
+    9 -> 10 [label = M]
+    10 -> 11 [label = INT]
+    11 -> 12 [label = P]
+    12 -> 13 [label = INT]            
 }"
+            | "Bio" -> @"digraph {
+    0 -> 1 [label = A]
+    1 -> 2 [label = C]            
+}"
+            |  _  -> ""
 
     [<Rpc>]
-    let draw (grammar'text : string) (graph'text : string) (isMinimised : bool) (isFormal : bool)=
+    let draw (grammar'text : string) (graph'text : string) (isFormal : bool) (isMinimised : bool)=
         try
             if grammar'text = "" && graph'text = "" then Error "Empty input"
             elif graph'text = "" then Error "Empty graph input"
@@ -71,23 +95,23 @@ y: L s R | INT"
                             let formalSubgraph = Parser.getFormalSubgraph minimisedTree (Parser.graphToMap graph)
                             if formalSubgraph.countOfVertex <> 0
                             then
-                                SucTreeGraph(Parser.treeToParsed minimisedTree.Root (fun x -> true), formalSubgraph)
+                                SucTreeGraph(Parser.treeToParsed minimisedTree minimisedTree.Root (fun x -> true), formalSubgraph)
                             else
                                 Error "There is no verticles in subgraph"
                         else
                             let minimisedTree = Parser.minimiseSppf tree
-                            SucTreeGraph (Parser.treeToParsed minimisedTree.Root (fun x -> true), Parser.toInputGraph graph)
+                            SucTreeGraph (Parser.treeToParsed minimisedTree minimisedTree.Root (fun x -> true), Parser.toInputGraph graph)
                     else
                         if isFormal
                         then
                             let formalSubgraph = Parser.getFormalSubgraph tree (Parser.graphToMap graph)
                             if formalSubgraph.countOfVertex <> 0
                             then
-                                SucTreeGraph(Parser.treeToParsed tree.Root (fun x -> true), formalSubgraph)
+                                SucTreeGraph(Parser.treeToParsed tree tree.Root (fun x -> true), formalSubgraph)
                             else
                                 Error "There is no verticles in subgraph"
                         else
-                            SucTreeGraph (Parser.treeToParsed tree.Root (fun x -> true), Parser.toInputGraph graph)
+                            SucTreeGraph (Parser.treeToParsed tree tree.Root (fun x -> true), Parser.toInputGraph graph)
         with
         | e -> Error e.Message
 
@@ -112,7 +136,7 @@ y: L s R | INT"
                     match nTNode with
                     | Parser.ResNode.Suc(node) ->
                         let edges, nodes = Parser.getEdgesOfMinLen node
-                        let tree, graph = Parser.getTreeOfMnLn edges nodes node (Parser.toInputGraph graph)
+                        let tree, graph = Parser.getTreeOfMnLn mtree edges nodes node (Parser.toInputGraph graph)
                         SucTreeGraph(tree, graph)
                     |  Parser.ResNode.None -> 
                         Error "No such nodes found"
