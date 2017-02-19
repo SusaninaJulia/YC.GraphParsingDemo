@@ -29,12 +29,12 @@ module Server =
         | Grammar ->
             [
                 "Math"
-                "2"
+                "Bio"
             ]
         | Graph ->
             [
                 "Math"
-                "2"
+                "Bio"
             ]
     [<Rpc>]
     let LoadDefaultFile (fileType: FileType) name =
@@ -45,7 +45,7 @@ module Server =
 s: s P n | n
 n: n M y | y
 y: L s R | INT"
-            | "2" -> @"[<Start>]
+            | "Bio" -> @"[<Start>]
 s: a b | b c | d
 a: A
 b: C
@@ -70,7 +70,7 @@ d: U"
     11 -> 12 [label = P]
     12 -> 13 [label = INT]            
 }"
-            | "2" -> @"digraph {
+            | "Bio" -> @"digraph {
     0 -> 1 [label = A]
     1 -> 2 [label = C]            
 }"
